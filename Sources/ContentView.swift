@@ -1,5 +1,27 @@
 import SwiftUI
 import ReplayKit
+import PhotosUI
+import CoreTransferable
+
+private struct PickedVideo: Transferable {
+    let url: URL
+
+    static var transferRepresentation: some TransferRepresentation {
+        FileRepresentation(importedContentType: .movie) { received in
+            let fileExtension = received.file.pathExtension.isEmpty ? "mov" : received.file.pathExtension
+            let destinationURL = FileManager.default.temporaryDirectory
+                .appendingPathComponent("picked-video-\(UUID().uuidString)")
+                .appendingPathExtension(fileExtension)
+
+            if FileManager.default.fileExists(atPath: destinationURL.path) {
+                try FileManager.default.removeItem(at: destinationURL)
+            }
+
+            try FileManager.default.copyItem(at: received.file, to: destinationURL)
+            return Self(url: destinationURL)
+        }
+    }
+}
 
 struct SystemBroadcastPickerView: UIViewRepresentable {
     let preferredExtension: String
@@ -19,6 +41,10 @@ struct SystemBroadcastPickerView: UIViewRepresentable {
 struct ContentView: View {
     @StateObject private var recorder = ScreenRecorderService()
     @State private var micOn = true
+    @State private var selectedVideoItem: PhotosPickerItem?
+    @State private var exportStatus = "No export started."
+    @State private var exportOutputURL: URL?
+    @State private var isExporting = false
 
     var body: some View {
         VStack(spacing: 16) {
@@ -80,11 +106,81 @@ struct ContentView: View {
                     .multilineTextAlignment(.center)
             }
 
+            VStack(alignment: .leading, spacing: 8) {
+                Text("TikTok 9:16 Export")
+                    .font(.headline)
+
+                PhotosPicker(
+                    selection: $selectedVideoItem,
+                    matching: .videos,
+                    photoLibrary: .shared()
+                ) {
+                    Text(isExporting ? "Exporting..." : "Pick Video and Export")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+                .disabled(isExporting)
+
+                Text(exportStatus)
+                    .font(.footnote)
+                    .foregroundColor(.secondary)
+
+                if let exportOutputURL {
+                    Text(exportOutputURL.path)
+                        .font(.footnote)
+                        .textSelection(.enabled)
+                }
+            }
+            .padding(12)
+            .background(Color(.secondarySystemBackground))
+            .cornerRadius(10)
+
             Text("Note: This is ReplayKit-compliant in-app recording.")
                 .font(.footnote)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
         }
         .padding()
+        .onChange(of: selectedVideoItem) { newItem in
+            guard let item = newItem else { return }
+            Task {
+                await exportSelectedVideo(item)
+            }
+        }
+    }
+
+    private func exportSelectedVideo(_ item: PhotosPickerItem) async {
+        await MainActor.run {
+            exportStatus = "Loading selected video..."
+            exportOutputURL = nil
+            isExporting = true
+        }
+
+        do {
+            guard let pickedVideo = try await item.loadTransferable(type: PickedVideo.self) else {
+                await MainActor.run {
+                    exportStatus = "Unable to load selected video."
+                    isExporting = false
+                }
+                return
+            }
+
+            await MainActor.run {
+                exportStatus = "Exporting to 1080x1920 MP4..."
+            }
+
+            let outputURL = try await TikTokVideoExporter.exportToTikTok(from: pickedVideo.url)
+
+            await MainActor.run {
+                exportStatus = "Export complete."
+                exportOutputURL = outputURL
+                isExporting = false
+            }
+        } catch {
+            await MainActor.run {
+                exportStatus = "Export failed: \(error.localizedDescription)"
+                isExporting = false
+            }
+        }
     }
 }

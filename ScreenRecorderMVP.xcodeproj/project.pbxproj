@@ -12,6 +12,7 @@
 		A10000010000000000000003 /* ScreenRecorderService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000010000000000000013 /* ScreenRecorderService.swift */; };
 		A10000010000000000000004 /* SampleHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000010000000000000016 /* SampleHandler.swift */; };
 		A10000010000000000000005 /* BroadcastUploadExtension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = A10000010000000000000015 /* BroadcastUploadExtension.appex */; };
+		A10000010000000000000006 /* TikTokVideoExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000010000000000000018 /* TikTokVideoExporter.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -47,6 +48,7 @@
 		A10000010000000000000015 /* BroadcastUploadExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = BroadcastUploadExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		A10000010000000000000016 /* SampleHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleHandler.swift; sourceTree = "<group>"; };
 		A10000010000000000000017 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		A10000010000000000000018 /* TikTokVideoExporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TikTokVideoExporter.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -83,6 +85,7 @@
 				A10000010000000000000011 /* ScreenRecorderMVPApp.swift */,
 				A10000010000000000000012 /* ContentView.swift */,
 				A10000010000000000000013 /* ScreenRecorderService.swift */,
+				A10000010000000000000018 /* TikTokVideoExporter.swift */,
 			);
 			path = Sources;
 			sourceTree = "<group>";
@@ -206,6 +209,7 @@
 				A10000010000000000000001 /* ScreenRecorderMVPApp.swift in Sources */,
 				A10000010000000000000002 /* ContentView.swift in Sources */,
 				A10000010000000000000003 /* ScreenRecorderService.swift in Sources */,
+				A10000010000000000000006 /* TikTokVideoExporter.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
