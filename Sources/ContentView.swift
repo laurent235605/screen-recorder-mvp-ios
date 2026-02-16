@@ -40,16 +40,35 @@ struct SystemBroadcastPickerView: UIViewRepresentable {
 
 struct ContentView: View {
     @StateObject private var recorder = ScreenRecorderService()
+    @EnvironmentObject private var monetization: MonetizationManager
     @State private var micOn = true
     @State private var selectedVideoItem: PhotosPickerItem?
     @State private var exportStatus = "No export started."
     @State private var exportOutputURL: URL?
     @State private var isExporting = false
+    @State private var isShowingPaywall = false
+    private let isTikTokGateEnabled = AppConfig.FeatureFlags.monetizationEnabled
+        && AppConfig.FeatureFlags.gateTikTokExportToPro
 
     var body: some View {
         VStack(spacing: 16) {
             Text("Screen Recorder MVP")
                 .font(.title2).bold()
+
+            if AppConfig.FeatureFlags.monetizationEnabled {
+                HStack {
+                    if monetization.hasPro {
+                        Label("Pro Active", systemImage: "checkmark.seal.fill")
+                            .foregroundColor(.green)
+                    } else {
+                        Button("Upgrade to Pro") {
+                            isShowingPaywall = true
+                        }
+                        .buttonStyle(.borderedProminent)
+                    }
+                    Spacer()
+                }
+            }
 
             VStack(alignment: .leading, spacing: 8) {
                 Text("Broadcast Entire Screen")
@@ -110,16 +129,34 @@ struct ContentView: View {
                 Text("TikTok 9:16 Export")
                     .font(.headline)
 
-                PhotosPicker(
-                    selection: $selectedVideoItem,
-                    matching: .videos,
-                    photoLibrary: .shared()
-                ) {
-                    Text(isExporting ? "Exporting..." : "Pick Video and Export")
-                        .frame(maxWidth: .infinity)
+                if isTikTokGateEnabled && !monetization.hasPro {
+                    Button("Upgrade to Export to TikTok") {
+                        isShowingPaywall = true
+                    }
+                    .frame(maxWidth: .infinity)
+                    .buttonStyle(.borderedProminent)
+
+                    Text("TikTok export is available with Pro.")
+                        .font(.footnote)
+                        .foregroundColor(.secondary)
+                } else {
+                    PhotosPicker(
+                        selection: $selectedVideoItem,
+                        matching: .videos,
+                        photoLibrary: .shared()
+                    ) {
+                        Text(isExporting ? "Exporting..." : "Pick Video and Export")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .disabled(isExporting)
                 }
-                .buttonStyle(.borderedProminent)
-                .disabled(isExporting)
+
+                if AppConfig.FeatureFlags.monetizationEnabled && !monetization.statusMessage.isEmpty {
+                    Text(monetization.statusMessage)
+                        .font(.footnote)
+                        .foregroundColor(.secondary)
+                }
 
                 Text(exportStatus)
                     .font(.footnote)
@@ -141,8 +178,20 @@ struct ContentView: View {
                 .multilineTextAlignment(.center)
         }
         .padding()
+        .sheet(isPresented: $isShowingPaywall) {
+            PaywallView()
+                .environmentObject(monetization)
+        }
         .onChange(of: selectedVideoItem) { newItem in
             guard let item = newItem else { return }
+
+            if isTikTokGateEnabled && !monetization.hasPro {
+                exportStatus = "TikTok export requires Pro."
+                selectedVideoItem = nil
+                isShowingPaywall = true
+                return
+            }
+
             Task {
                 await exportSelectedVideo(item)
             }

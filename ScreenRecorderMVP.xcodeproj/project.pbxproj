@@ -13,6 +13,9 @@
 		A10000010000000000000004 /* SampleHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000010000000000000016 /* SampleHandler.swift */; };
 		A10000010000000000000005 /* BroadcastUploadExtension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = A10000010000000000000015 /* BroadcastUploadExtension.appex */; };
 		A10000010000000000000006 /* TikTokVideoExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000010000000000000018 /* TikTokVideoExporter.swift */; };
+		A10000010000000000000007 /* AppConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000010000000000000019 /* AppConfig.swift */; };
+		A10000010000000000000008 /* MonetizationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000001000000000000001A /* MonetizationManager.swift */; };
+		A10000010000000000000009 /* PaywallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000001000000000000001B /* PaywallView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -49,6 +52,9 @@
 		A10000010000000000000016 /* SampleHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleHandler.swift; sourceTree = "<group>"; };
 		A10000010000000000000017 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A10000010000000000000018 /* TikTokVideoExporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TikTokVideoExporter.swift; sourceTree = "<group>"; };
+		A10000010000000000000019 /* AppConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConfig.swift; sourceTree = "<group>"; };
+		A1000001000000000000001A /* MonetizationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonetizationManager.swift; sourceTree = "<group>"; };
+		A1000001000000000000001B /* PaywallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaywallView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -86,6 +92,9 @@
 				A10000010000000000000012 /* ContentView.swift */,
 				A10000010000000000000013 /* ScreenRecorderService.swift */,
 				A10000010000000000000018 /* TikTokVideoExporter.swift */,
+				A10000010000000000000019 /* AppConfig.swift */,
+				A1000001000000000000001A /* MonetizationManager.swift */,
+				A1000001000000000000001B /* PaywallView.swift */,
 			);
 			path = Sources;
 			sourceTree = "<group>";
@@ -210,6 +219,9 @@
 				A10000010000000000000002 /* ContentView.swift in Sources */,
 				A10000010000000000000003 /* ScreenRecorderService.swift in Sources */,
 				A10000010000000000000006 /* TikTokVideoExporter.swift in Sources */,
+				A10000010000000000000007 /* AppConfig.swift in Sources */,
+				A10000010000000000000008 /* MonetizationManager.swift in Sources */,
+				A10000010000000000000009 /* PaywallView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
