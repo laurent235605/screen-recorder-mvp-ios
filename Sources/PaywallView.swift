@@ -12,6 +12,9 @@ struct PaywallView: View {
     private var yearlyProduct: Product? {
         monetization.products.first { $0.id == AppConfig.ProductIDs.proYearly }
     }
+    private var hasAtLeastOneProduct: Bool {
+        monthlyProduct != nil || yearlyProduct != nil
+    }
 
     var body: some View {
         NavigationStack {
@@ -28,28 +31,48 @@ struct PaywallView: View {
                 if monetization.isLoadingProducts {
                     ProgressView("Loading subscriptions...")
                 } else {
-                    VStack(spacing: 10) {
-                        PaywallProductCard(
-                            title: "Monthly",
-                            product: monthlyProduct,
-                            isBusy: monetization.isPurchaseInProgress,
-                            action: { product in
-                                Task {
-                                    await monetization.purchase(product)
+                    if hasAtLeastOneProduct {
+                        VStack(spacing: 10) {
+                            PaywallProductCard(
+                                title: "Monthly",
+                                product: monthlyProduct,
+                                isBusy: monetization.isPurchaseInProgress,
+                                action: { product in
+                                    Task {
+                                        await monetization.purchase(product)
+                                    }
                                 }
-                            }
-                        )
+                            )
 
-                        PaywallProductCard(
-                            title: "Yearly",
-                            product: yearlyProduct,
-                            isBusy: monetization.isPurchaseInProgress,
-                            action: { product in
+                            PaywallProductCard(
+                                title: "Yearly",
+                                product: yearlyProduct,
+                                isBusy: monetization.isPurchaseInProgress,
+                                action: { product in
+                                    Task {
+                                        await monetization.purchase(product)
+                                    }
+                                }
+                            )
+                        }
+                    } else {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Label("Subscriptions are currently unavailable.", systemImage: "exclamationmark.triangle")
+                                .font(.headline)
+                            Text("Please check your connection and try again. If this persists, product IDs may be misconfigured.")
+                                .font(.footnote)
+                                .foregroundColor(.secondary)
+                            Button("Retry Loading Plans") {
                                 Task {
-                                    await monetization.purchase(product)
+                                    await monetization.loadProducts(forceReload: true)
                                 }
                             }
-                        )
+                            .buttonStyle(.borderedProminent)
+                        }
+                        .padding(12)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(Color(.secondarySystemBackground))
+                        .cornerRadius(10)
                     }
                 }
 
@@ -59,7 +82,7 @@ struct PaywallView: View {
                     }
                 }
                 .buttonStyle(.bordered)
-                .disabled(monetization.isPurchaseInProgress)
+                .disabled(monetization.isPurchaseInProgress || monetization.isLoadingProducts)
 
                 Text(monetization.hasPro ? "Pro is active on this account." : monetization.statusMessage)
                     .font(.footnote)
@@ -110,7 +133,7 @@ private struct PaywallProductCard: View {
 
                 Spacer()
 
-                Button("Buy") {
+                Button(product == nil ? "Unavailable" : "Buy") {
                     guard let product else { return }
                     action(product)
                 }

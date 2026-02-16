@@ -26,8 +26,22 @@ Build an iOS app that can record screen + microphone audio in an Apple-compliant
 3. Add `NSMicrophoneUsageDescription` in Info.plist.
 4. Run on physical device for real testing.
 
-## Next (Phase 2)
-- Broadcast Upload Extension for full-screen broadcast workflow.
-- Clip trimming + watermark.
-- Auto-upload pipeline (S3/Cloudflare R2).
-- Creator templates for TikTok/Reels aspect exports.
+## Current capabilities
+- In-app ReplayKit recording (screen + optional microphone).
+- Broadcast Upload Extension scaffold for system broadcast flow.
+- TikTok 9:16 export (1080x1920) with center-crop scaling.
+- Export post-actions: Save to Photos + Share sheet.
+- StoreKit 2 commercialization scaffold (paywall, purchase, restore, entitlement gate).
+- Local analytics event logging abstraction.
+
+## Known limitations
+- Broadcast behavior must be validated on physical device (simulator limitations).
+- Product IDs are placeholders until App Store Connect products are configured.
+- Analytics currently logs locally; remote provider integration is pending.
+- No server-side receipt validation yet.
+
+## Next (Phase 3)
+- A/B paywall experiments and conversion tuning.
+- Crash/telemetry integration.
+- TestFlight pipeline and release metadata automation.
+- Optional cloud upload pipeline and creator presets.

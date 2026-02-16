@@ -54,14 +54,22 @@ struct ContentView: View {
     @EnvironmentObject private var monetization: MonetizationManager
     @State private var micOn = true
     @State private var selectedVideoItem: PhotosPickerItem?
-    @State private var exportStatus = "No export started."
+    @State private var exportStatus = "No exported video yet. Pick a video to begin."
     @State private var exportOutputURL: URL?
     @State private var isExporting = false
     @State private var isSavingToPhotos = false
     @State private var isShowingPaywall = false
     @State private var isShowingShareSheet = false
+    @State private var activeExportRequestID: UUID?
     private let isTikTokGateEnabled = AppConfig.FeatureFlags.monetizationEnabled
         && AppConfig.FeatureFlags.gateTikTokExportToPro
+    private var exportStatusColor: Color {
+        let lowered = exportStatus.lowercased()
+        if lowered.contains("failed") || lowered.contains("denied") || lowered.contains("already in progress") {
+            return .orange
+        }
+        return .secondary
+    }
 
     var body: some View {
         VStack(spacing: 16) {
@@ -158,7 +166,7 @@ struct ContentView: View {
                         matching: .videos,
                         photoLibrary: .shared()
                     ) {
-                        Text(isExporting ? "Exporting..." : "Pick Video and Export")
+                        Text(isExporting ? "Exporting..." : "Pick Video to Export")
                             .frame(maxWidth: .infinity)
                     }
                     .buttonStyle(.borderedProminent)
@@ -173,7 +181,7 @@ struct ContentView: View {
 
                 Text(exportStatus)
                     .font(.footnote)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(exportStatusColor)
 
                 if let exportOutputURL {
                     Text(exportOutputURL.path)
@@ -188,14 +196,23 @@ struct ContentView: View {
                             }
                         }
                         .buttonStyle(.bordered)
-                        .disabled(isSavingToPhotos)
+                        .disabled(isSavingToPhotos || isExporting)
 
                         Button("Share") {
-                            Analytics.log(.shareTapped)
-                            isShowingShareSheet = true
+                            if FileManager.default.fileExists(atPath: exportOutputURL.path) {
+                                Analytics.log(.shareTapped)
+                                isShowingShareSheet = true
+                            } else {
+                                exportStatus = "Exported file is no longer available. Please export again."
+                            }
                         }
                         .buttonStyle(.borderedProminent)
+                        .disabled(isExporting)
                     }
+                } else {
+                    Text("Export output will appear here after a successful conversion.")
+                        .font(.footnote)
+                        .foregroundColor(.secondary)
                 }
             }
             .padding(12)
@@ -227,25 +244,36 @@ struct ContentView: View {
                 return
             }
 
+            guard !isExporting else {
+                exportStatus = "An export is already in progress."
+                selectedVideoItem = nil
+                return
+            }
+
+            let requestID = UUID()
+            activeExportRequestID = requestID
+            isExporting = true
+            exportOutputURL = nil
+            exportStatus = "Loading selected video..."
+            selectedVideoItem = nil
+
             Task {
-                await exportSelectedVideo(item)
+                await exportSelectedVideo(item, requestID: requestID)
             }
         }
     }
 
-    private func exportSelectedVideo(_ item: PhotosPickerItem) async {
-        await MainActor.run {
-            exportStatus = "Loading selected video..."
-            exportOutputURL = nil
-            isExporting = true
-        }
+    private func exportSelectedVideo(_ item: PhotosPickerItem, requestID: UUID) async {
         Analytics.log(.exportStarted)
 
         do {
             guard let pickedVideo = try await item.loadTransferable(type: PickedVideo.self) else {
                 await MainActor.run {
-                    exportStatus = "Unable to load selected video."
-                    isExporting = false
+                    if activeExportRequestID == requestID {
+                        exportStatus = "Unable to load the selected video. Try another clip."
+                        isExporting = false
+                        activeExportRequestID = nil
+                    }
                 }
                 Analytics.log(.exportFailed, properties: [
                     "reason": "load_selected_video_failed",
@@ -260,15 +288,21 @@ struct ContentView: View {
             let outputURL = try await TikTokVideoExporter.exportToTikTok(from: pickedVideo.url)
 
             await MainActor.run {
-                exportStatus = "Export complete."
-                exportOutputURL = outputURL
-                isExporting = false
+                if activeExportRequestID == requestID {
+                    exportStatus = "Export complete. You can save to Photos or share now."
+                    exportOutputURL = outputURL
+                    isExporting = false
+                    activeExportRequestID = nil
+                }
             }
             Analytics.log(.exportSuccess)
         } catch {
             await MainActor.run {
-                exportStatus = "Export failed: \(error.localizedDescription)"
-                isExporting = false
+                if activeExportRequestID == requestID {
+                    exportStatus = "Export failed. \(error.localizedDescription)"
+                    isExporting = false
+                    activeExportRequestID = nil
+                }
             }
             Analytics.log(.exportFailed, properties: [
                 "error": error.localizedDescription,
@@ -277,6 +311,14 @@ struct ContentView: View {
     }
 
     private func saveExportedVideoToPhotos(_ url: URL) async {
+        guard FileManager.default.fileExists(atPath: url.path) else {
+            await MainActor.run {
+                exportStatus = "Exported file is no longer available. Please export again."
+                isSavingToPhotos = false
+            }
+            return
+        }
+
         await MainActor.run {
             isSavingToPhotos = true
             exportStatus = "Saving to Photos..."
@@ -285,7 +327,7 @@ struct ContentView: View {
         let authorizationStatus = await requestPhotoLibraryAddPermission()
         guard authorizationStatus == .authorized || authorizationStatus == .limited else {
             await MainActor.run {
-                exportStatus = "Photo access denied."
+                exportStatus = "Photo access denied. Allow access in Settings to save videos."
                 isSavingToPhotos = false
             }
             return
@@ -301,7 +343,7 @@ struct ContentView: View {
             }
         } catch {
             await MainActor.run {
-                exportStatus = "Save failed: \(error.localizedDescription)"
+                exportStatus = "Save failed. \(error.localizedDescription)"
                 isSavingToPhotos = false
             }
         }

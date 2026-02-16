@@ -24,11 +24,12 @@ final class MonetizationManager: ObservableObject {
         transactionUpdatesTask?.cancel()
     }
 
-    func loadProducts() async {
+    func loadProducts(forceReload: Bool = false) async {
         guard AppConfig.FeatureFlags.monetizationEnabled else {
             statusMessage = "Monetization is disabled."
             return
         }
+        guard !isLoadingProducts || forceReload else { return }
 
         isLoadingProducts = true
         defer { isLoadingProducts = false }
@@ -38,7 +39,11 @@ final class MonetizationManager: ObservableObject {
             products = sortProducts(fetchedProducts)
 
             if products.isEmpty {
-                statusMessage = "No products are configured yet."
+                statusMessage = "No subscriptions are available right now."
+            } else if !hasPro {
+                statusMessage = "Choose a plan to unlock TikTok export."
+            } else {
+                statusMessage = "Pro is active."
             }
         } catch {
             statusMessage = "Could not load subscriptions: \(error.localizedDescription)"
@@ -46,6 +51,7 @@ final class MonetizationManager: ObservableObject {
     }
 
     func purchase(_ product: Product) async {
+        guard !isPurchaseInProgress else { return }
         Analytics.log(.purchaseTapped, properties: ["product_id": product.id])
         isPurchaseInProgress = true
         defer { isPurchaseInProgress = false }
@@ -72,7 +78,10 @@ final class MonetizationManager: ObservableObject {
     }
 
     func restorePurchases() async {
+        guard !isPurchaseInProgress else { return }
         Analytics.log(.purchaseRestore)
+        isPurchaseInProgress = true
+        defer { isPurchaseInProgress = false }
         do {
             try await AppStore.sync()
             await refreshEntitlements()

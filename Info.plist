@@ -24,5 +24,7 @@
     <string>We use microphone audio when you choose to record voice during screen recording.</string>
     <key>NSPhotoLibraryAddUsageDescription</key>
     <string>We save your recording to Photos when you choose Save.</string>
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>We access your photo library so you can pick videos to export and verify saved results.</string>
 </dict>
 </plist>
