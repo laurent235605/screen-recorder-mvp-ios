@@ -82,6 +82,9 @@ struct PaywallView: View {
             await monetization.loadProducts()
             await monetization.refreshEntitlements()
         }
+        .onAppear {
+            Analytics.log(.paywallShown)
+        }
     }
 }
 

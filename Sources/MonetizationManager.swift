@@ -46,6 +46,7 @@ final class MonetizationManager: ObservableObject {
     }
 
     func purchase(_ product: Product) async {
+        Analytics.log(.purchaseTapped, properties: ["product_id": product.id])
         isPurchaseInProgress = true
         defer { isPurchaseInProgress = false }
 
@@ -57,6 +58,7 @@ final class MonetizationManager: ObservableObject {
                 await transaction.finish()
                 await refreshEntitlements()
                 statusMessage = hasPro ? "Pro is active." : "Purchase completed."
+                Analytics.log(.purchaseSuccess, properties: ["product_id": product.id])
             case .pending:
                 statusMessage = "Purchase is pending approval."
             case .userCancelled:
@@ -70,6 +72,7 @@ final class MonetizationManager: ObservableObject {
     }
 
     func restorePurchases() async {
+        Analytics.log(.purchaseRestore)
         do {
             try await AppStore.sync()
             await refreshEntitlements()

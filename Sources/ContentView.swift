@@ -1,6 +1,7 @@
 import SwiftUI
 import ReplayKit
 import PhotosUI
+import Photos
 import CoreTransferable
 
 private struct PickedVideo: Transferable {
@@ -21,6 +22,16 @@ private struct PickedVideo: Transferable {
             return Self(url: destinationURL)
         }
     }
+}
+
+private struct ActivityView: UIViewControllerRepresentable {
+    let activityItems: [Any]
+
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        UIActivityViewController(activityItems: activityItems, applicationActivities: nil)
+    }
+
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
 }
 
 struct SystemBroadcastPickerView: UIViewRepresentable {
@@ -46,7 +57,9 @@ struct ContentView: View {
     @State private var exportStatus = "No export started."
     @State private var exportOutputURL: URL?
     @State private var isExporting = false
+    @State private var isSavingToPhotos = false
     @State private var isShowingPaywall = false
+    @State private var isShowingShareSheet = false
     private let isTikTokGateEnabled = AppConfig.FeatureFlags.monetizationEnabled
         && AppConfig.FeatureFlags.gateTikTokExportToPro
 
@@ -166,6 +179,23 @@ struct ContentView: View {
                     Text(exportOutputURL.path)
                         .font(.footnote)
                         .textSelection(.enabled)
+
+                    HStack(spacing: 8) {
+                        Button(isSavingToPhotos ? "Saving..." : "Save to Photos") {
+                            Analytics.log(.saveToPhotosTapped)
+                            Task {
+                                await saveExportedVideoToPhotos(exportOutputURL)
+                            }
+                        }
+                        .buttonStyle(.bordered)
+                        .disabled(isSavingToPhotos)
+
+                        Button("Share") {
+                            Analytics.log(.shareTapped)
+                            isShowingShareSheet = true
+                        }
+                        .buttonStyle(.borderedProminent)
+                    }
                 }
             }
             .padding(12)
@@ -181,6 +211,11 @@ struct ContentView: View {
         .sheet(isPresented: $isShowingPaywall) {
             PaywallView()
                 .environmentObject(monetization)
+        }
+        .sheet(isPresented: $isShowingShareSheet) {
+            if let exportOutputURL {
+                ActivityView(activityItems: [exportOutputURL])
+            }
         }
         .onChange(of: selectedVideoItem) { newItem in
             guard let item = newItem else { return }
@@ -204,6 +239,7 @@ struct ContentView: View {
             exportOutputURL = nil
             isExporting = true
         }
+        Analytics.log(.exportStarted)
 
         do {
             guard let pickedVideo = try await item.loadTransferable(type: PickedVideo.self) else {
@@ -211,6 +247,9 @@ struct ContentView: View {
                     exportStatus = "Unable to load selected video."
                     isExporting = false
                 }
+                Analytics.log(.exportFailed, properties: [
+                    "reason": "load_selected_video_failed",
+                ])
                 return
             }
 
@@ -225,10 +264,53 @@ struct ContentView: View {
                 exportOutputURL = outputURL
                 isExporting = false
             }
+            Analytics.log(.exportSuccess)
         } catch {
             await MainActor.run {
                 exportStatus = "Export failed: \(error.localizedDescription)"
                 isExporting = false
+            }
+            Analytics.log(.exportFailed, properties: [
+                "error": error.localizedDescription,
+            ])
+        }
+    }
+
+    private func saveExportedVideoToPhotos(_ url: URL) async {
+        await MainActor.run {
+            isSavingToPhotos = true
+            exportStatus = "Saving to Photos..."
+        }
+
+        let authorizationStatus = await requestPhotoLibraryAddPermission()
+        guard authorizationStatus == .authorized || authorizationStatus == .limited else {
+            await MainActor.run {
+                exportStatus = "Photo access denied."
+                isSavingToPhotos = false
+            }
+            return
+        }
+
+        do {
+            try await PHPhotoLibrary.shared().performChanges {
+                PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: url)
+            }
+            await MainActor.run {
+                exportStatus = "Saved to Photos."
+                isSavingToPhotos = false
+            }
+        } catch {
+            await MainActor.run {
+                exportStatus = "Save failed: \(error.localizedDescription)"
+                isSavingToPhotos = false
+            }
+        }
+    }
+
+    private func requestPhotoLibraryAddPermission() async -> PHAuthorizationStatus {
+        await withCheckedContinuation { continuation in
+            PHPhotoLibrary.requestAuthorization(for: .addOnly) { status in
+                continuation.resume(returning: status)
             }
         }
     }
