@@ -10,7 +10,33 @@
 		A10000010000000000000001 /* ScreenRecorderMVPApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000010000000000000011 /* ScreenRecorderMVPApp.swift */; };
 		A10000010000000000000002 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000010000000000000012 /* ContentView.swift */; };
 		A10000010000000000000003 /* ScreenRecorderService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000010000000000000013 /* ScreenRecorderService.swift */; };
+		A10000010000000000000004 /* SampleHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000010000000000000016 /* SampleHandler.swift */; };
+		A10000010000000000000005 /* BroadcastUploadExtension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = A10000010000000000000015 /* BroadcastUploadExtension.appex */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		A1000001000000000000002A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A10000010000000000000040 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A10000010000000000000028;
+			remoteInfo = BroadcastUploadExtension;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		A10000010000000000000024 /* Embed App Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				A10000010000000000000005 /* BroadcastUploadExtension.appex in Embed App Extensions */,
+			);
+			name = "Embed App Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		A10000010000000000000010 /* ScreenRecorderMVP.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ScreenRecorderMVP.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -18,10 +44,20 @@
 		A10000010000000000000012 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		A10000010000000000000013 /* ScreenRecorderService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenRecorderService.swift; sourceTree = "<group>"; };
 		A10000010000000000000014 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		A10000010000000000000015 /* BroadcastUploadExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = BroadcastUploadExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		A10000010000000000000016 /* SampleHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleHandler.swift; sourceTree = "<group>"; };
+		A10000010000000000000017 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		A10000010000000000000022 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A10000010000000000000026 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -35,6 +71,7 @@
 			isa = PBXGroup;
 			children = (
 				A10000010000000000000031 /* Sources */,
+				A10000010000000000000033 /* BroadcastUploadExtension */,
 				A10000010000000000000014 /* Info.plist */,
 				A10000010000000000000032 /* Products */,
 			);
@@ -50,10 +87,20 @@
 			path = Sources;
 			sourceTree = "<group>";
 		};
+		A10000010000000000000033 /* BroadcastUploadExtension */ = {
+			isa = PBXGroup;
+			children = (
+				A10000010000000000000016 /* SampleHandler.swift */,
+				A10000010000000000000017 /* Info.plist */,
+			);
+			path = BroadcastUploadExtension;
+			sourceTree = "<group>";
+		};
 		A10000010000000000000032 /* Products */ = {
 			isa = PBXGroup;
 			children = (
 				A10000010000000000000010 /* ScreenRecorderMVP.app */,
+				A10000010000000000000015 /* BroadcastUploadExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -68,15 +115,34 @@
 				A10000010000000000000021 /* Sources */,
 				A10000010000000000000022 /* Frameworks */,
 				A10000010000000000000023 /* Resources */,
+				A10000010000000000000024 /* Embed App Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				A10000010000000000000029 /* PBXTargetDependency */,
 			);
 			name = ScreenRecorderMVP;
 			productName = ScreenRecorderMVP;
 			productReference = A10000010000000000000010 /* ScreenRecorderMVP.app */;
 			productType = "com.apple.product-type.application";
+		};
+		A10000010000000000000028 /* BroadcastUploadExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A10000010000000000000043 /* Build configuration list for PBXNativeTarget "BroadcastUploadExtension" */;
+			buildPhases = (
+				A10000010000000000000025 /* Sources */,
+				A10000010000000000000026 /* Frameworks */,
+				A10000010000000000000027 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = BroadcastUploadExtension;
+			productName = BroadcastUploadExtension;
+			productReference = A10000010000000000000015 /* BroadcastUploadExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -89,6 +155,9 @@
 				LastUpgradeCheck = 1600;
 				TargetAttributes = {
 					A10000010000000000000020 = {
+						CreatedOnToolsVersion = 16.0;
+					};
+					A10000010000000000000028 = {
 						CreatedOnToolsVersion = 16.0;
 					};
 				};
@@ -107,12 +176,20 @@
 			projectRoot = "";
 			targets = (
 				A10000010000000000000020 /* ScreenRecorderMVP */,
+				A10000010000000000000028 /* BroadcastUploadExtension */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		A10000010000000000000023 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A10000010000000000000027 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -132,7 +209,23 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		A10000010000000000000025 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A10000010000000000000004 /* SampleHandler.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		A10000010000000000000029 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A10000010000000000000028 /* BroadcastUploadExtension */;
+			targetProxy = A1000001000000000000002A /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		A10000010000000000000050 /* Debug */ = {
@@ -224,6 +317,48 @@
 			};
 			name = Release;
 		};
+		A10000010000000000000054 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = BroadcastUploadExtension/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.ScreenRecorderMVP.BroadcastUploadExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		A10000010000000000000055 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = BroadcastUploadExtension/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.ScreenRecorderMVP.BroadcastUploadExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -241,6 +376,15 @@
 			buildConfigurations = (
 				A10000010000000000000052 /* Debug */,
 				A10000010000000000000053 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A10000010000000000000043 /* Build configuration list for PBXNativeTarget "BroadcastUploadExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A10000010000000000000054 /* Debug */,
+				A10000010000000000000055 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
