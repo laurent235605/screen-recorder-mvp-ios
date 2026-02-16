@@ -1,6 +1,21 @@
 import SwiftUI
 import ReplayKit
 
+struct SystemBroadcastPickerView: UIViewRepresentable {
+    let preferredExtension: String
+
+    func makeUIView(context: Context) -> RPSystemBroadcastPickerView {
+        let picker = RPSystemBroadcastPickerView(frame: .zero)
+        picker.preferredExtension = preferredExtension
+        picker.showsMicrophoneButton = true
+        return picker
+    }
+
+    func updateUIView(_ uiView: RPSystemBroadcastPickerView, context: Context) {
+        uiView.preferredExtension = preferredExtension
+    }
+}
+
 struct ContentView: View {
     @StateObject private var recorder = ScreenRecorderService()
     @State private var micOn = true
@@ -9,6 +24,26 @@ struct ContentView: View {
         VStack(spacing: 16) {
             Text("Screen Recorder MVP")
                 .font(.title2).bold()
+
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Broadcast Entire Screen")
+                    .font(.headline)
+                Text("Tap the system broadcast button below to start ReplayKit broadcast flow. If prompted, choose \"ScreenRecorderMVP\".")
+                    .font(.footnote)
+                    .foregroundColor(.secondary)
+                HStack {
+                    Text("System Broadcast")
+                        .font(.subheadline)
+                    Spacer()
+                    SystemBroadcastPickerView(
+                        preferredExtension: "com.example.ScreenRecorderMVP.BroadcastUploadExtension"
+                    )
+                    .frame(width: 44, height: 44)
+                }
+            }
+            .padding(12)
+            .background(Color(.secondarySystemBackground))
+            .cornerRadius(10)
 
             Toggle("Microphone", isOn: $micOn)
                 .onChange(of: micOn) { newValue in
