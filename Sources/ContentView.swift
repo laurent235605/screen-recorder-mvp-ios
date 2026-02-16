@@ -11,7 +11,7 @@ struct ContentView: View {
                 .font(.title2).bold()
 
             Toggle("Microphone", isOn: $micOn)
-                .onChange(of: micOn) { _, newValue in
+                .onChange(of: micOn) { newValue in
                     recorder.setMicrophoneEnabled(newValue)
                 }
 
