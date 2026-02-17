@@ -23,6 +23,7 @@ xcodebuild \
   -project ScreenRecorderMVP.xcodeproj \
   -scheme ScreenRecorderMVP \
   -sdk iphonesimulator \
+  -destination 'generic/platform=iOS Simulator' \
   -derivedDataPath ./.DerivedData \
   CODE_SIGNING_ALLOWED=NO build >"$BUILD_LOG" 2>&1
 STATUS=$?
