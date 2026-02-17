@@ -1,0 +1,120 @@
+{
+  "name": "ScreenRecorderMVP - Daily Report",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 10 * * *"
+            }
+          ]
+        }
+      },
+      "id": "schedule-1",
+      "name": "Daily 10AM",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        260,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "command": "/Users/wali_mini/.openclaw/workspace/ScreenRecorderMVP/automation/n8n/daily_report.sh /Users/wali_mini/.openclaw/workspace/ScreenRecorderMVP"
+      },
+      "id": "exec-2",
+      "name": "Generate Daily JSON",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        560,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "msg",
+              "name": "message",
+              "type": "string",
+              "value": "=📊 ScreenRecorderMVP Daily Report\\n{{$json[\"health\"]}}\\n\\nRecent commits:\\n{{$json[\"lastCommits\"]}}"
+            }
+          ]
+        }
+      },
+      "id": "set-1",
+      "name": "Format Message",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        820,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "2047171592",
+        "text": "={{$json[\"message\"]}}"
+      },
+      "id": "telegram-report",
+      "name": "Telegram Daily",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [
+        1080,
+        320
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "telegram-cred-placeholder",
+          "name": "Telegram Laurent"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Daily 10AM": {
+      "main": [
+        [
+          {
+            "node": "Generate Daily JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Daily JSON": {
+      "main": [
+        [
+          {
+            "node": "Format Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Message": {
+      "main": [
+        [
+          {
+            "node": "Telegram Daily",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "timezone": "Asia/Shanghai"
+  },
+  "versionId": "1"
+}

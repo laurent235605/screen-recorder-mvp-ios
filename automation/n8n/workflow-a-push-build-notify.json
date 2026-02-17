@@ -1,0 +1,148 @@
+{
+  "name": "ScreenRecorderMVP - Push Build Notify",
+  "nodes": [
+    {
+      "parameters": {
+        "owner": "laurent235605",
+        "repository": "screen-recorder-mvp-ios",
+        "events": [
+          "push"
+        ],
+        "options": {}
+      },
+      "id": "github-trigger-1",
+      "name": "GitHub Trigger",
+      "type": "n8n-nodes-base.githubTrigger",
+      "typeVersion": 1,
+      "position": [
+        280,
+        300
+      ],
+      "credentials": {
+        "githubApi": {
+          "id": "github-cred-placeholder",
+          "name": "GitHub Laurent"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "command": "/Users/wali_mini/.openclaw/workspace/ScreenRecorderMVP/automation/n8n/run_ci_build.sh /Users/wali_mini/.openclaw/workspace/ScreenRecorderMVP"
+      },
+      "id": "exec-1",
+      "name": "Run xcodebuild",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        620,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json[\"result\"]}}",
+              "operation": "equal",
+              "value2": "success"
+            }
+          ]
+        }
+      },
+      "id": "if-1",
+      "name": "Build Success?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        900,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "2047171592",
+        "text": "={{$json[\"summary\"]}}"
+      },
+      "id": "telegram-ok",
+      "name": "Telegram Success",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [
+        1160,
+        220
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "telegram-cred-placeholder",
+          "name": "Telegram Laurent"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "2047171592",
+        "text": "={{$json[\"summary\"] + \"\\n\\nLog tail:\\n\" + $json[\"logTail\"]}}"
+      },
+      "id": "telegram-fail",
+      "name": "Telegram Failure",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [
+        1160,
+        380
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "telegram-cred-placeholder",
+          "name": "Telegram Laurent"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "GitHub Trigger": {
+      "main": [
+        [
+          {
+            "node": "Run xcodebuild",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Run xcodebuild": {
+      "main": [
+        [
+          {
+            "node": "Build Success?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Success?": {
+      "main": [
+        [
+          {
+            "node": "Telegram Success",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Telegram Failure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {},
+  "versionId": "1"
+}
