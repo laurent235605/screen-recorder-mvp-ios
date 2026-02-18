@@ -49,9 +49,46 @@ struct SystemBroadcastPickerView: UIViewRepresentable {
     }
 }
 
+private struct OnboardingView: View {
+    let onContinue: () -> Void
+
+    var body: some View {
+        NavigationStack {
+            VStack(alignment: .leading, spacing: 16) {
+                Text("Welcome to Screen Recorder MVP")
+                    .font(.title2)
+                    .bold()
+
+                Text("Fast path to your first TikTok-ready export:")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+
+                VStack(alignment: .leading, spacing: 10) {
+                    Label("Start ReplayKit recording from the system picker", systemImage: "record.circle")
+                    Label("Pick a clip and export to 1080x1920", systemImage: "square.and.arrow.up")
+                    Label("Upgrade to Pro for TikTok 9:16 export", systemImage: "crown")
+                }
+                .font(.footnote)
+
+                Spacer()
+
+                Button("Got it") {
+                    onContinue()
+                }
+                .buttonStyle(.borderedProminent)
+                .frame(maxWidth: .infinity)
+            }
+            .padding()
+            .navigationBarTitleDisplayMode(.inline)
+        }
+    }
+}
+
 struct ContentView: View {
     @StateObject private var recorder = ScreenRecorderService()
     @EnvironmentObject private var monetization: MonetizationManager
+    @AppStorage("has_seen_onboarding_v1") private var hasSeenOnboarding = false
+    @State private var isShowingOnboarding = false
     @State private var micOn = true
     @State private var selectedVideoItem: PhotosPickerItem?
     @State private var exportStatus = "No exported video yet. Pick a video to begin."
@@ -168,6 +205,14 @@ struct ContentView: View {
                     Text("TikTok export is available with Pro.")
                         .font(.footnote)
                         .foregroundColor(.secondary)
+
+                    Button("Restore Purchases") {
+                        Task {
+                            await monetization.restorePurchases()
+                        }
+                    }
+                    .buttonStyle(.bordered)
+                    .disabled(monetization.isPurchaseInProgress)
                 } else {
                     PhotosPicker(
                         selection: $selectedVideoItem,
@@ -241,6 +286,18 @@ struct ContentView: View {
             if let exportOutputURL {
                 ActivityView(activityItems: [exportOutputURL])
             }
+        }
+        .sheet(isPresented: $isShowingOnboarding) {
+            OnboardingView {
+                hasSeenOnboarding = true
+                isShowingOnboarding = false
+                Analytics.log(.onboardingCompleted)
+            }
+        }
+        .onAppear {
+            guard !hasSeenOnboarding else { return }
+            isShowingOnboarding = true
+            Analytics.log(.onboardingShown)
         }
         .onChange(of: selectedVideoItem) { newItem in
             guard let item = newItem else { return }

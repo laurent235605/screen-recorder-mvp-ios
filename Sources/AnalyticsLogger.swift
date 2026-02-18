@@ -10,6 +10,8 @@ enum AnalyticsEvent: String {
     case exportFailed = "export_failed"
     case saveToPhotosTapped = "save_to_photos_tapped"
     case shareTapped = "share_tapped"
+    case onboardingShown = "onboarding_shown"
+    case onboardingCompleted = "onboarding_completed"
 }
 
 protocol AnalyticsLogging {
