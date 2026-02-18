@@ -1,0 +1,142 @@
+[
+  {
+    "name": "ScreenRecorderMVP - Poll Build Notify v3",
+    "nodes": [
+      {
+        "parameters": {
+          "rule": {
+            "interval": [
+              {
+                "field": "cronExpression",
+                "expression": "*/5 * * * *"
+              }
+            ]
+          }
+        },
+        "id": "schedule-v3",
+        "name": "Every 5 min",
+        "type": "n8n-nodes-base.scheduleTrigger",
+        "typeVersion": 1.2,
+        "position": [300,280]
+      },
+      {
+        "parameters": {
+          "authentication": "privateKey",
+          "resource": "command",
+          "operation": "execute",
+          "command": "/Users/wali_mini/.openclaw/workspace/ScreenRecorderMVP/automation/n8n/run_poll_build.sh /Users/wali_mini/.openclaw/workspace/ScreenRecorderMVP /Users/wali_mini/.openclaw/workspace/.n8n/state"
+        },
+        "id": "ssh-v3",
+        "name": "Poll and Build",
+        "type": "n8n-nodes-base.ssh",
+        "typeVersion": 1,
+        "position": [560,280],
+        "credentials": {
+          "sshPrivateKey": {
+            "id": "NdnQjPMKHoLmc3fv",
+            "name": "SSH Private Key account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const src = $json.json ?? $json.stdout ?? $json.data ?? $json;\nlet text = typeof src === 'string' ? src : JSON.stringify(src);\ntext = text.trim();\nlet out;\ntry { out = JSON.parse(text); } catch (e) { out = { result: 'failed', summary: '❌ Unable to parse poll CI output', logTail: text.slice(-3000) }; }\nreturn [{ json: out }];"
+        },
+        "id": "parse-v3",
+        "name": "Parse Poll JSON",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [800,280]
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "string": [
+              {
+                "value1": "={{$json[\"result\"]}}",
+                "value2": "nochange"
+              }
+            ]
+          }
+        },
+        "id": "if-nochange-v3",
+        "name": "No change?",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 1,
+        "position": [1020,280]
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "string": [
+              {
+                "value1": "={{$json[\"result\"]}}",
+                "value2": "success"
+              }
+            ]
+          }
+        },
+        "id": "if-success-v3",
+        "name": "Build success?",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 1,
+        "position": [1240,360]
+      },
+      {
+        "parameters": {
+          "chatId": "2047171592",
+          "text": "={{$json[\"summary\"]}}",
+          "additionalFields": {}
+        },
+        "id": "tg-success-v3",
+        "name": "Telegram Success",
+        "type": "n8n-nodes-base.telegram",
+        "typeVersion": 1,
+        "position": [1460,280],
+        "credentials": {
+          "telegramApi": {
+            "id": "ZVJFzxklmqKvLDz7",
+            "name": "Telegram account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "chatId": "2047171592",
+          "text": "={{$json[\"summary\"] + \"\\n\\nLog tail:\\n\" + ($json[\"logTail\"] || \"\")}}",
+          "additionalFields": {}
+        },
+        "id": "tg-fail-v3",
+        "name": "Telegram Failure",
+        "type": "n8n-nodes-base.telegram",
+        "typeVersion": 1,
+        "position": [1460,440],
+        "credentials": {
+          "telegramApi": {
+            "id": "ZVJFzxklmqKvLDz7",
+            "name": "Telegram account"
+          }
+        }
+      }
+    ],
+    "connections": {
+      "Every 5 min": {"main": [[{"node":"Poll and Build","type":"main","index":0}]]},
+      "Poll and Build": {"main": [[{"node":"Parse Poll JSON","type":"main","index":0}]]},
+      "Parse Poll JSON": {"main": [[{"node":"No change?","type":"main","index":0}]]},
+      "No change?": {
+        "main": [
+          [],
+          [[{"node":"Build success?","type":"main","index":0}]]
+        ]
+      },
+      "Build success?": {
+        "main": [
+          [[{"node":"Telegram Success","type":"main","index":0}]],
+          [[{"node":"Telegram Failure","type":"main","index":0}]]
+        ]
+      }
+    },
+    "active": false,
+    "settings": {"timezone":"Asia/Shanghai"}
+  }
+]
