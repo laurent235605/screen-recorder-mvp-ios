@@ -83,6 +83,10 @@ struct ContentView: View {
                             .foregroundColor(.green)
                     } else {
                         Button("Upgrade to Pro") {
+                            Analytics.log(.paywallShown, properties: [
+                                "entry_point": "header_upgrade_cta",
+                                "paywall_variant": monetization.paywallVariant.rawValue,
+                            ])
                             isShowingPaywall = true
                         }
                         .buttonStyle(.borderedProminent)
@@ -152,6 +156,10 @@ struct ContentView: View {
 
                 if isTikTokGateEnabled && !monetization.hasPro {
                     Button("Upgrade to Export to TikTok") {
+                        Analytics.log(.paywallShown, properties: [
+                            "entry_point": "export_gate_cta",
+                            "paywall_variant": monetization.paywallVariant.rawValue,
+                        ])
                         isShowingPaywall = true
                     }
                     .frame(maxWidth: .infinity)
@@ -239,6 +247,10 @@ struct ContentView: View {
 
             if isTikTokGateEnabled && !monetization.hasPro {
                 exportStatus = "TikTok export requires Pro."
+                Analytics.log(.paywallShown, properties: [
+                    "entry_point": "export_attempt_blocked",
+                    "paywall_variant": monetization.paywallVariant.rawValue,
+                ])
                 selectedVideoItem = nil
                 isShowingPaywall = true
                 return

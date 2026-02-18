@@ -8,10 +8,12 @@ final class MonetizationManager: ObservableObject {
     @Published var isLoadingProducts = false
     @Published var isPurchaseInProgress = false
     @Published var statusMessage = ""
+    @Published private(set) var paywallVariant: PaywallVariant
 
     private var transactionUpdatesTask: Task<Void, Never>?
 
     init() {
+        paywallVariant = PaywallExperiment.assignedVariant()
         observeTransactionUpdates()
 
         Task {
@@ -36,7 +38,8 @@ final class MonetizationManager: ObservableObject {
 
         do {
             let fetchedProducts = try await Product.products(for: AppConfig.ProductIDs.all)
-            products = sortProducts(fetchedProducts)
+            let sortedProducts = sortProducts(fetchedProducts)
+            products = PaywallExperiment.orderedProducts(from: sortedProducts, variant: paywallVariant)
 
             if products.isEmpty {
                 statusMessage = "No subscriptions are available right now."
@@ -52,7 +55,9 @@ final class MonetizationManager: ObservableObject {
 
     func purchase(_ product: Product) async {
         guard !isPurchaseInProgress else { return }
-        Analytics.log(.purchaseTapped, properties: ["product_id": product.id])
+        var props = analyticsContext()
+        props["product_id"] = product.id
+        Analytics.log(.purchaseTapped, properties: props)
         isPurchaseInProgress = true
         defer { isPurchaseInProgress = false }
 
@@ -64,7 +69,10 @@ final class MonetizationManager: ObservableObject {
                 await transaction.finish()
                 await refreshEntitlements()
                 statusMessage = hasPro ? "Pro is active." : "Purchase completed."
-                Analytics.log(.purchaseSuccess, properties: ["product_id": product.id])
+
+                var successProps = analyticsContext()
+                successProps["product_id"] = product.id
+                Analytics.log(.purchaseSuccess, properties: successProps)
             case .pending:
                 statusMessage = "Purchase is pending approval."
             case .userCancelled:
@@ -79,7 +87,7 @@ final class MonetizationManager: ObservableObject {
 
     func restorePurchases() async {
         guard !isPurchaseInProgress else { return }
-        Analytics.log(.purchaseRestore)
+        Analytics.log(.purchaseRestore, properties: analyticsContext())
         isPurchaseInProgress = true
         defer { isPurchaseInProgress = false }
         do {
@@ -143,6 +151,10 @@ final class MonetizationManager: ObservableObject {
 
             return lhs.displayName < rhs.displayName
         }
+    }
+
+    private func analyticsContext() -> [String: String] {
+        ["paywall_variant": paywallVariant.rawValue]
     }
 
     private static func verify<T>(_ result: VerificationResult<T>) throws -> T {

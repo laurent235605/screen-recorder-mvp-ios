@@ -5,25 +5,22 @@ struct PaywallView: View {
     @EnvironmentObject private var monetization: MonetizationManager
     @Environment(\.dismiss) private var dismiss
 
-    private var monthlyProduct: Product? {
-        monetization.products.first { $0.id == AppConfig.ProductIDs.proMonthly }
+    private var displayedProducts: [Product] {
+        PaywallExperiment.orderedProducts(from: monetization.products, variant: monetization.paywallVariant)
     }
 
-    private var yearlyProduct: Product? {
-        monetization.products.first { $0.id == AppConfig.ProductIDs.proYearly }
-    }
     private var hasAtLeastOneProduct: Bool {
-        monthlyProduct != nil || yearlyProduct != nil
+        !displayedProducts.isEmpty
     }
 
     var body: some View {
         NavigationStack {
             VStack(spacing: 16) {
-                Text("Upgrade to Pro")
+                Text(monetization.paywallVariant.headline)
                     .font(.title2)
                     .bold()
 
-                Text("Unlock TikTok 9:16 export and future premium features.")
+                Text(monetization.paywallVariant.subtitle)
                     .font(.footnote)
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
@@ -33,27 +30,18 @@ struct PaywallView: View {
                 } else {
                     if hasAtLeastOneProduct {
                         VStack(spacing: 10) {
-                            PaywallProductCard(
-                                title: "Monthly",
-                                product: monthlyProduct,
-                                isBusy: monetization.isPurchaseInProgress,
-                                action: { product in
-                                    Task {
-                                        await monetization.purchase(product)
+                            ForEach(displayedProducts, id: \.id) { product in
+                                PaywallProductCard(
+                                    title: product.displayName,
+                                    product: product,
+                                    isBusy: monetization.isPurchaseInProgress,
+                                    action: { selected in
+                                        Task {
+                                            await monetization.purchase(selected)
+                                        }
                                     }
-                                }
-                            )
-
-                            PaywallProductCard(
-                                title: "Yearly",
-                                product: yearlyProduct,
-                                isBusy: monetization.isPurchaseInProgress,
-                                action: { product in
-                                    Task {
-                                        await monetization.purchase(product)
-                                    }
-                                }
-                            )
+                                )
+                            }
                         }
                     } else {
                         VStack(alignment: .leading, spacing: 8) {
@@ -106,14 +94,17 @@ struct PaywallView: View {
             await monetization.refreshEntitlements()
         }
         .onAppear {
-            Analytics.log(.paywallShown)
+            Analytics.log(.paywallShown, properties: [
+                "paywall_variant": monetization.paywallVariant.rawValue,
+                "entry_point": "paywall_sheet",
+            ])
         }
     }
 }
 
 private struct PaywallProductCard: View {
     let title: String
-    let product: Product?
+    let product: Product
     let isBusy: Bool
     let action: (Product) -> Void
 
@@ -122,23 +113,22 @@ private struct PaywallProductCard: View {
             Text(title)
                 .font(.headline)
 
-            Text(product?.description ?? "Not available")
+            Text(product.description)
                 .font(.footnote)
                 .foregroundColor(.secondary)
 
             HStack {
-                Text(product?.displayPrice ?? "--")
+                Text(product.displayPrice)
                     .font(.title3)
                     .bold()
 
                 Spacer()
 
-                Button(product == nil ? "Unavailable" : "Buy") {
-                    guard let product else { return }
+                Button("Buy") {
                     action(product)
                 }
                 .buttonStyle(.borderedProminent)
-                .disabled(product == nil || isBusy)
+                .disabled(isBusy)
             }
         }
         .padding(12)
