@@ -41,7 +41,10 @@ Build an iOS app that can record screen + microphone audio in an Apple-compliant
 - No server-side receipt validation yet.
 
 ## Next (Phase 3)
-- A/B paywall experiments and conversion tuning.
+- Onboarding and first-export funnel tuning.
 - Crash/telemetry integration.
-- TestFlight pipeline and release metadata automation.
 - Optional cloud upload pipeline and creator presets.
+
+## Release docs
+- `RELEASE_PREP_CHECKLIST.md` — end-to-end release readiness checklist.
+- `TESTFLIGHT_PLAYBOOK.md` — practical rollout flow from archive to external testers.
