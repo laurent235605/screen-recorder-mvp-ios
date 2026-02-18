@@ -48,3 +48,6 @@ Build an iOS app that can record screen + microphone audio in an Apple-compliant
 ## Release docs
 - `RELEASE_PREP_CHECKLIST.md` — end-to-end release readiness checklist.
 - `TESTFLIGHT_PLAYBOOK.md` — practical rollout flow from archive to external testers.
+
+## Growth docs
+- `GROWTH_METRICS_DASHBOARD.md` — KPI and experiment metric definitions for paywall/onboarding/export funnel.

@@ -4,6 +4,8 @@ This project uses a lightweight local analytics abstraction in `Sources/Analytic
 
 ## Event names
 
+- `onboarding_shown`
+- `onboarding_completed`
 - `paywall_shown`
 - `purchase_tapped`
 - `purchase_success`
@@ -13,6 +15,13 @@ This project uses a lightweight local analytics abstraction in `Sources/Analytic
 - `export_failed`
 - `save_to_photos_tapped`
 - `share_tapped`
+
+## Key properties in use
+
+- `paywall_variant` (e.g. `control_a`, `value_first_b`)
+- `entry_point` (e.g. `header_upgrade_cta`, `export_gate_cta`, `export_attempt_blocked`, `paywall_sheet`)
+- `product_id` (StoreKit product id)
+- `error` / `reason` for failure paths
 
 ## Current behavior
 
